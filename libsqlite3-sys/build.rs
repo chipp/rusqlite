@@ -424,6 +424,16 @@ mod build_linked {
         #[cfg(not(feature = "loadable_extension"))]
         println!("cargo:link-target={link_lib}");
 
+        // Taken from openssl-sys
+        // https://github.com/sfackler/rust-openssl/blob/36720a549b870e277be568830ba51c68591f5674/openssl-sys/build/main.rs#L219
+        if find_link_mode() == "static"
+            && (env::var("CARGO_CFG_TARGET_OS").unwrap() == "linux"
+                || env::var("CARGO_CFG_TARGET_OS").unwrap() == "android")
+            && env::var("CARGO_CFG_TARGET_POINTER_WIDTH").unwrap() == "32"
+        {
+            println!("cargo:rustc-link-lib=atomic");
+        }
+
         // Allow users to specify where to find SQLite.
         if let Ok(dir) = env::var(format!("{}_LIB_DIR", env_prefix())) {
             // Try to use pkg-config to determine link commands
